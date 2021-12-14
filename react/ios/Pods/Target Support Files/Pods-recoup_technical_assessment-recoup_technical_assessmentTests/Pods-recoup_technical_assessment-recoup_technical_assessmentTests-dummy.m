@@ -1,0 +1,5 @@
+#import <Foundation/Foundation.h>
+@interface PodsDummy_Pods_recoup_technical_assessment_recoup_technical_assessmentTests : NSObject
+@end
+@implementation PodsDummy_Pods_recoup_technical_assessment_recoup_technical_assessmentTests
+@end

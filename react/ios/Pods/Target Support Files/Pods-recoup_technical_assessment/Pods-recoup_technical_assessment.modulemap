@@ -1,0 +1,6 @@
+module Pods_recoup_technical_assessment {
+  umbrella header "Pods-recoup_technical_assessment-umbrella.h"
+
+  export *
+  module * { export * }
+}
