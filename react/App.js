@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import MessagesAll from './Components/MessagesAll';
 import Message from './Components/Message';
+import MessageNew from './Components/MessageNew';
 
 const Stack = createNativeStackNavigator();
 
@@ -17,7 +18,13 @@ const App = () => {
           headerBackTitle: ''
         }}>
         <Stack.Screen name='MessageList' component={MessagesAll} options={{ title: 'Messages' }} />
-        <Stack.Screen name='Message' component={Message} />
+        <Stack.Screen
+          name='Message'
+          component={Message}
+          options={({ route }) => ({
+            title: route.params.name
+          })} />
+        <Stack.Screen name='MessageNew' component={MessageNew} options={{ title: 'New Message', headerBackTitle: 'Cancel' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

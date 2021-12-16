@@ -1,15 +1,16 @@
 import React, { Component } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 function Chat({ data, navigation }) {
     return (
         <TouchableOpacity
             style={chatStyle.container}
-            onPress={() => navigation.navigate('Message')}
+            onPress={() => navigation.navigate('Message', { name: data.name, username: data.username })}
         >
             <View style={chatStyle.layoutContainer}>
                 <View>
                     <Text style={chatStyle.contact}>{data.name}</Text>
+                    <Text style={chatStyle.lastMessage}>{data.lastMessage}</Text>
                 </View>
                 <View style={chatStyle.right}>
                     <Text style={chatStyle.contact}>&gt;</Text>
@@ -25,23 +26,32 @@ class MessagesAll extends Component {
 
         this.state = {
             user: 'Sam',
-            messages: []
+            username: 'samruhe',
+            chats: []
         };
     }
 
-    componentDidMount() {
-        var messageData = [
-            {
-                name: 'Bob',
-                number: '9393938482'
-            },
-            {
-                name: 'Rob',
-                number: '72749473844'
-            }
-        ];
+    makeRequest = () => {
+        fetch(`http://localhost:3000/${this.state.username}`, {
+            method: 'GET'
+        })
+        .then(res => res.json())
+        .then(resJson => {
+            this.setState({ chats: resJson.chats });
+        })
+        .catch(err => console.log(err));
+    }
 
-        this.setState({ messages: messageData });
+    componentDidMount() {
+        this.props.navigation.setOptions({
+            headerRight: () => (
+                <Button
+                    title='+'
+                    onPress={() => this.props.navigation.navigate('MessageNew')} />
+            )
+        });
+
+        this.makeRequest();
     }
 
     renderSeparator = () => {
@@ -61,8 +71,8 @@ class MessagesAll extends Component {
         return (
             <View>
                 <FlatList
-                    keyExtractor={message => message.number}
-                    data={this.state.messages}
+                    keyExtractor={chat => chat.username}
+                    data={this.state.chats}
                     renderItem={({item}) => <Chat data={item} navigation={this.props.navigation} />}
                     ItemSeparatorComponent={this.renderSeparator}
                 />
@@ -77,6 +87,9 @@ const chatStyle = StyleSheet.create({
     },
     contact: {
         fontSize: 20
+    },
+    lastMessage: {
+        fontSize: 15
     },
     layoutContainer: {
         display: 'flex',
