@@ -22,9 +22,15 @@ const App = () => {
           name='Message'
           component={Message}
           options={({ route }) => ({
-            title: route.params.name
+            title: route.params.toUsername
           })} />
-        <Stack.Screen name='MessageNew' component={MessageNew} options={{ title: 'New Message', headerBackTitle: 'Cancel' }} />
+        <Stack.Screen
+          name='MessageNew'
+          component={MessageNew}
+          options={{
+            title: 'New Message',
+            headerBackTitle: 'Cancel'
+          }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

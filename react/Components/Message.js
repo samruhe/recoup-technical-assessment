@@ -1,14 +1,19 @@
 import React, { Component } from 'react';
 import { Button, FlatList, Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import io from "socket.io-client";
 
-function SingleMessage({ messageInfo }) {
+function SingleMessage({ messageInfo, username }) {
+    const myMessage = () => {
+        return messageInfo.sentBy === username;
+    }
+
     return (
         <View style={message.container}>
             <View style={[
                 message.box, {
-                    backgroundColor: messageInfo.sent ? 'blue' : 'gray',
-                    marginRight: messageInfo.sent ? 0 : 100,
-                    marginLeft: messageInfo.sent ? 100 : 0
+                    backgroundColor: myMessage() ? 'blue' : 'gray',
+                    marginRight: myMessage() ? 0 : 100,
+                    marginLeft: myMessage() ? 100 : 0
                 }
             ]}>
                 <Text style={message.text}>{messageInfo.message}</Text>
@@ -23,13 +28,16 @@ class Message extends Component {
 
         this.state = {
             username: props.route.params.username,
+            toUsername: props.route.params.toUsername,
             messages: [],
             newMessage: ''
         };
     }
 
     handleSendMessage = () => {
-        fetch(`http://localhost:3000/samruhe/${this.state.username}/message`, {
+        // this.socket.emit('chat message', this.state.newMessage);
+        // this.setState({ newMessage: '' });
+        fetch(`http://localhost:3000/${this.state.username}/${this.state.toUsername}/message`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
@@ -42,7 +50,7 @@ class Message extends Component {
         .then(resJson => {
             if (resJson.status == 'SUCCESS') {
                 this.setState({
-                    messages: [...this.state.messages, { sent: true, message: this.state.newMessage, time: '11:00' }],
+                    messages: [...this.state.messages, { sentBy: this.state.username, message: this.state.newMessage, time: Date.now() }],
                     newMessage: ''
                 });
             }
@@ -53,7 +61,7 @@ class Message extends Component {
     }
 
     makeRequest = () => {
-        fetch(`http://localhost:3000/${this.state.username}/messages`, {
+        fetch(`http://localhost:3000/${this.state.username}/${this.state.toUsername}/messages`, {
             method: 'GET'
         })
         .then(res => res.json())
@@ -65,6 +73,11 @@ class Message extends Component {
 
     componentDidMount() {
         this.makeRequest();
+
+        // this.socket = io("http://localhost:3000");
+        // this.socket.on("chat message", msg => {
+        //     this.setState({ messages: [...this.state.messages, { sent: true, message: msg, time: '11:00' }] });
+        // });
     }
 
     render() {
@@ -77,7 +90,7 @@ class Message extends Component {
                     inverted
                     data={this.state.messages}
                     contentContainerStyle={{ flexDirection: 'column-reverse' }}
-                    renderItem={({ item }) => <SingleMessage messageInfo={item} /> } />
+                    renderItem={({ item }) => <SingleMessage messageInfo={item} username={this.state.username} /> } />
                 <View style={newMessage.container}>
                     <View style={newMessage.subContainer}>
                         <TextInput

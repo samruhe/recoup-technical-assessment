@@ -22,6 +22,7 @@ class Message extends Component {
         super(props);
 
         this.state = {
+            username: props.route.params.username,
             messages: [],
             newMessage: '',
             contact: ''
@@ -29,7 +30,7 @@ class Message extends Component {
     }
 
     handleSendMessage = () => {
-        fetch(`http://localhost:3000/samruhe/${this.state.contact.trim()}/message`, {
+        fetch(`http://localhost:3000/${this.state.username}/${this.state.contact.trim()}/message`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -42,10 +43,10 @@ class Message extends Component {
         .then(resJson => {
             if (resJson.status == 'SUCCESS') {
                 this.setState({
-                    messages: [...this.state.messages, { sent: true, message: this.state.newMessage, time: '11:00' }],
+                    messages: [...this.state.messages, { sent: true, message: this.state.newMessage, time: Date.now() }],
                     newMessage: ''
                 }, () => {
-                    this.props.navigation.navigate('Message', { name: resJson.name, username: this.state.contact });
+                    this.props.navigation.navigate('Message', { username: resJson.username, toUsername: this.state.contact });
                 });
             }
             else

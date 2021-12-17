@@ -1,15 +1,15 @@
 import React, { Component } from 'react';
 import { Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-function Chat({ data, navigation }) {
+function Chat({ username, data, navigation }) {
     return (
         <TouchableOpacity
             style={chatStyle.container}
-            onPress={() => navigation.navigate('Message', { name: data.name, username: data.username })}
+            onPress={() => navigation.navigate('Message', { username: username, toUsername: data.toUsername })}
         >
             <View style={chatStyle.layoutContainer}>
                 <View>
-                    <Text style={chatStyle.contact}>{data.name}</Text>
+                    <Text style={chatStyle.contact}>{data.toUsername}</Text>
                     <Text style={chatStyle.lastMessage}>{data.lastMessage}</Text>
                 </View>
                 <View style={chatStyle.right}>
@@ -25,7 +25,6 @@ class MessagesAll extends Component {
         super(props);
 
         this.state = {
-            user: 'Sam',
             username: 'samruhe',
             chats: []
         };
@@ -47,7 +46,7 @@ class MessagesAll extends Component {
             headerRight: () => (
                 <Button
                     title='+'
-                    onPress={() => this.props.navigation.navigate('MessageNew')} />
+                    onPress={() => this.props.navigation.navigate('MessageNew', { username: this.state.username })} />
             )
         });
 
@@ -71,9 +70,9 @@ class MessagesAll extends Component {
         return (
             <View>
                 <FlatList
-                    keyExtractor={chat => chat.username}
+                    keyExtractor={chat => chat.toUsername}
                     data={this.state.chats}
-                    renderItem={({item}) => <Chat data={item} navigation={this.props.navigation} />}
+                    renderItem={({item}) => <Chat data={item} username={this.state.username} navigation={this.props.navigation} />}
                     ItemSeparatorComponent={this.renderSeparator}
                 />
             </View>
