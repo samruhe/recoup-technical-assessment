@@ -1,14 +1,18 @@
 import React, { Component } from 'react';
 import { Alert, Button, FlatList, Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-function SingleMessage({ messageInfo }) {
+function SingleMessage({ messageInfo, username }) {
+    const myMessage = () => {
+        return messageInfo.sentBy === username;
+    }
+
     return (
         <View style={message.container}>
             <View style={[
                 message.box, {
-                    backgroundColor: messageInfo.sent ? 'blue' : 'gray',
-                    marginRight: messageInfo.sent ? 0 : 100,
-                    marginLeft: messageInfo.sent ? 100 : 0
+                    backgroundColor: myMessage() ? 'blue' : 'gray',
+                    marginRight: myMessage() ? 0 : 100,
+                    marginLeft: myMessage() ? 100 : 0
                 }
             ]}>
                 <Text style={message.text}>{messageInfo.message}</Text>
@@ -17,7 +21,7 @@ function SingleMessage({ messageInfo }) {
     );
 }
 
-class Message extends Component {
+class MessageNew extends Component {
     constructor(props) {
         super(props);
 
@@ -43,7 +47,7 @@ class Message extends Component {
         .then(resJson => {
             if (resJson.status == 'SUCCESS') {
                 this.setState({
-                    messages: [...this.state.messages, { sent: true, message: this.state.newMessage, time: Date.now() }],
+                    messages: [...this.state.messages, { sentBy: this.state.username, message: this.state.newMessage, time: Date.now() }],
                     newMessage: ''
                 }, () => {
                     this.props.navigation.navigate('Message', { username: resJson.username, toUsername: this.state.contact });
@@ -82,7 +86,7 @@ class Message extends Component {
                     inverted
                     data={this.state.messages}
                     contentContainerStyle={{ flexDirection: 'column-reverse' }}
-                    renderItem={({ item }) => <SingleMessage messageInfo={item} /> } />
+                    renderItem={({ item }) => <SingleMessage messageInfo={item} username={this.state.username} /> } />
                 <View style={newMessage.container}>
                     <View style={newMessage.subContainer}>
                         <TextInput
@@ -158,4 +162,4 @@ const newMessage = StyleSheet.create({
     }
 });
 
-export default Message;
+export default MessageNew;
