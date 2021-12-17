@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 function Chat({ username, data, navigation }) {
+    var messageSent = new Date(data.lastMessageTime).toDateString();
     return (
         <TouchableOpacity
             style={chatStyle.container}
@@ -13,6 +14,7 @@ function Chat({ username, data, navigation }) {
                     <Text style={chatStyle.lastMessage}>{data.lastMessage}</Text>
                 </View>
                 <View style={chatStyle.right}>
+                    <Text>{messageSent}</Text>
                     <Text style={chatStyle.contact}>&gt;</Text>
                 </View>
             </View>
@@ -96,7 +98,8 @@ const chatStyle = StyleSheet.create({
     },
     right: {
         position: 'absolute',
-        right: 10
+        right: 10,
+        flexDirection: 'row'
     }
 });
 
