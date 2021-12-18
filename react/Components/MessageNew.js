@@ -1,25 +1,7 @@
 import React, { Component } from 'react';
 import { Alert, Button, FlatList, Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
-function SingleMessage({ messageInfo, username }) {
-    const myMessage = () => {
-        return messageInfo.sentBy === username;
-    }
-
-    return (
-        <View style={message.container}>
-            <View style={[
-                message.box, {
-                    backgroundColor: myMessage() ? 'blue' : 'gray',
-                    marginRight: myMessage() ? 0 : 100,
-                    marginLeft: myMessage() ? 100 : 0
-                }
-            ]}>
-                <Text style={message.text}>{messageInfo.message}</Text>
-            </View>
-        </View>
-    );
-}
+import SingleMessage from './SingleMessage';
 
 class MessageNew extends Component {
     constructor(props) {
@@ -93,6 +75,7 @@ class MessageNew extends Component {
                         style={newMessage.sendToInput}
                         placeholder="Send to..."
                         placeholderTextColor="gray"
+                        onFocus={() => this.setState({ messages: [] })}
                         onChangeText={contact => this.setState({ contact })}
                         value={this.state.contact} />
                 </View>

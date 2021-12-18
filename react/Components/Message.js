@@ -1,26 +1,27 @@
 import React, { Component } from 'react';
 import { Button, FlatList, Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import io from "socket.io-client";
 
-function SingleMessage({ messageInfo, username }) {
-    const myMessage = () => {
-        return messageInfo.sentBy === username;
-    }
+import SingleMessage from './SingleMessage';
 
-    return (
-        <View style={message.container}>
-            <View style={[
-                message.box, {
-                    backgroundColor: myMessage() ? 'blue' : 'gray',
-                    marginRight: myMessage() ? 0 : 100,
-                    marginLeft: myMessage() ? 100 : 0
-                }
-            ]}>
-                <Text style={message.text}>{messageInfo.message}</Text>
-            </View>
-        </View>
-    );
-}
+// function SingleMessage({ messageInfo, username }) {
+//     const myMessage = () => {
+//         return messageInfo.sentBy === username;
+//     }
+
+//     return (
+//         <View style={message.container}>
+//             <View style={[
+//                 message.box, {
+//                     backgroundColor: myMessage() ? 'blue' : 'gray',
+//                     alignSelf: myMessage() ? 'flex-end' : 'flex-start',
+//                     maxWidth: '80%'
+//                 }
+//             ]}>
+//                 <Text style={message.text}>{messageInfo.message}</Text>
+//             </View>
+//         </View>
+//     );
+// }
 
 class Message extends Component {
     constructor(props) {
@@ -127,19 +128,6 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
         height: '100%'
-    }
-});
-
-const message = StyleSheet.create({
-    box: {
-        padding: 10,
-        borderRadius: 15
-    },
-    container: {
-        padding: 5
-    },
-    text: {
-        fontSize: 15
     }
 });
 
