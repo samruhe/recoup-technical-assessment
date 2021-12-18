@@ -55,6 +55,11 @@ class MessagesAll extends Component {
                 <Button
                     title='+'
                     onPress={() => this.props.navigation.navigate('MessageNew', { username: this.state.username })} />
+            ),
+            headerLeft: () => (
+                <Button
+                    title="Log Out"
+                    onPress={() => firebase.auth().signOut()} />
             )
         });
     }
