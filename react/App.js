@@ -29,7 +29,8 @@ const App = () => {
           component={MessageNew}
           options={{
             title: 'New Message',
-            headerBackTitle: 'Cancel'
+            headerBackTitle: 'Cancel',
+            presentation: 'modal'
           }} />
       </Stack.Navigator>
     </NavigationContainer>

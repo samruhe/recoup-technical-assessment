@@ -49,8 +49,6 @@ class MessageNew extends Component {
                 this.setState({
                     messages: [...this.state.messages, { sentBy: this.state.username, message: this.state.newMessage, time: Date.now() }],
                     newMessage: ''
-                }, () => {
-                    this.props.navigation.navigate('Message', { username: resJson.username, toUsername: this.state.contact });
                 });
             }
             else
