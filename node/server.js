@@ -188,141 +188,139 @@ sendNewMessage = (req, res) => {
     // see if recipient exists
     db.collection('users').find().toArray()
         .then(result => {
-            var users = result.map(user => user.username);
-            if (!users.includes(sentTo))
+            var users = result.map(user => user.username.toLowerCase());
+            if (!users.includes(sentTo.toLowerCase()))
                 return res.send({ status: 'ERROR', message: 'USER DOES NOT EXIST' });
-            
-            // find chat_id for chat between these two users
-            db.collection('chat_ids').findOne({ $or:[ { user1: sentBy, user2: sentTo }, { user1: sentTo, user2: sentBy } ]})
-                .then(result => {
-                    // if chat exists
-                    if (result) {
-                        var chat_id = result.chat_id;
+                
+                // check if chat between these two users already exists
+                db.collection('chat_ids').findOne({ $or:[ { user1: sentBy, user2: sentTo }, { user1: sentTo, user2: sentBy } ]})
+                    .then(result => {
+                        // if chat does exist
+                        if (result) {
+                            var chat_id = result.chat_id;
 
-                        // update chat to have new message
-                        db.collection('chat_messages').updateOne( { chat_id: chat_id}, { $push: { messages: { sentBy: sentBy, message: message, time: timeNow } } })
-                            .then(result => {
-                                if (result.modifiedCount === 1) {
-                                    // updated users messages to show most recent on screen with all messages
-                                    db.collection('user_messages').findOne({ username: sentBy })
-                                    .then(result => {
-                                        // if messages with this user already exist
-                                        if (result) {
-                                            var toUpdate = result.messages;
-                                            var idx = toUpdate.findIndex(obj => obj.toUsername === sentTo);
-                                            if (idx != -1) { // if there is already a chat with the user
+                            // update the chat to add new message
+                            db.collection('chat_messages').updateOne( { chat_id: chat_id}, { $push: { messages: { sentBy: sentBy, message: message, time: timeNow } } })
+                                .then(result => {
+                                    if (result.modifiedCount === 1) {
+                                        // update table to show most recent message on screen with list of all messages
+                                        db.collection('user_messages').findOne({ username: sentBy })
+                                            .then(result => {
+                                                var toUpdate = result.messages;
+                                                var idx = toUpdate.findIndex(obj => obj.toUsername === sentTo);
                                                 toUpdate[idx].lastMessage = message;
                                                 toUpdate[idx].lastMessageTime = timeNow;
-
+                                                
                                                 db.collection('user_messages').updateOne({ username: sentBy }, { $set: { messages: toUpdate } })
                                                     .then(result => {
-                                                        if (result.modifiedCount === 1)
-                                                            return res.send({ status: 'SUCCESS', username: sentTo });
-                                                        else
-                                                            return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                    })
-                                                    .catch(err => {
-                                                        console.log(err);
-                                                        return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                    });
-                                            } else { // if no previous chat with this user
-                                                db.collection('user_messages').updateOne({ username: sentBy }, { $push: { messages: { toUsername: sentTo, lastMessage: message, lastMessageTime: timeNow } } })
-                                                    .then(result => {
-                                                        if (result.modifiedCount === 1)
-                                                            return res.send({ status: 'SUCCESS', username: sentTo });
-                                                        else
-                                                            return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                    })
-                                                    .catch(err => {
-                                                        console.log(err);
-                                                        return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                    });
-                                            }
-                                        } 
-                                        // else { // if users do not have messages
-                                        //     db.collection('user_messages').insert({ username: sentBy, messages: [{ toUsername: sentTo, lastMessage: message, lastMessageTime: timeNow }]})
-                                        //         .then(result => {
-                                        //             if (result.insertedCount === 1) {
-                                        //                 db.collection('user_messages').insert({ username: sentTo, messages: [{ toUsername: sentBy, lastMessage: message, lastMessageTime: timeNow }]})
-                                        //                     .then(result => {
-                                        //                         if (result.insertedCount === 1)
-                                        //                             return res.send({ status: 'SUCCESS' });
-                                        //                         else
-                                        //                             return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                        //                     })
-                                        //                     .catch(err => {
-                                        //                         console.log(err);
-                                        //                         return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                        //                     });
-                                        //             }
-                                        //             else {
-                                        //                 return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                        //             }
-                                        //         })
-                                        //         .catch(err => {
-                                        //             console.log(err);
-                                        //             return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                        //         });
-                                        // }
-                                    })
-                                    .catch(err => {
-                                        console.log(err);
-                                        return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                    });
-                                }
-                                else
-                                    return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                            })
-                            .catch(err => {
-                                console.log(err);
-                                return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                            });
-                    } else { // if first message between these two users, chat does not currently exist
-                        // get highest chat_id to create new id
-                        db.collection('chat_ids').find().sort({ chat_id: -1 }).limit(1).toArray()
-                            .then(result => {
-                                var new_chat_id = 0;
-                                if (result.length > 0)
-                                    new_chat_id = result[0].chat_id + 1;
-                                db.collection('chat_ids').insert({ chat_id: new_chat_id, user1: sentBy, user2: sentTo })
-                                    .then(result => {
-                                        if (result.insertedCount === 1) {
-                                            // insert the chat messages with associated id
-                                            db.collection('chat_messages').insert({ chat_id: new_chat_id, messages: [{ sentBy: sentBy, message: message, time: timeNow }]})
-                                                .then(result => {
-                                                    if (result.insertedCount === 1) {
-                                                        // updated users messages to show most recent on screen with all messages
-                                                        db.collection('user_messages').findOne({ username: sentBy })
-                                                            .then(result => {
-                                                                // if messages with this user already exist
-                                                                if (result) {
+                                                        if (result.modifiedCount === 1) {
+                                                            db.collection('user_messages').findOne({ username: sentTo })
+                                                                .then(result => {
                                                                     var toUpdate = result.messages;
-                                                                    var idx = toUpdate.findIndex(obj => obj.toUsername === sentTo);
-                                                                    if (idx != -1) { // if there is already a chat with the user
-                                                                        toUpdate[idx].lastMessage = message;
-                                                                        toUpdate[idx].lastMessageTime = timeNow;
+                                                                    var idx = toUpdate.findIndex(obj => obj.toUsername === sentBy);
+                                                                    toUpdate[idx].lastMessage = message;
+                                                                    toUpdate[idx].lastMessageTime = timeNow;
+
+                                                                    db.collection('user_messages').updateOne({ username: sentTo }, { $set: { messages: toUpdate } })
+                                                                        .then(result => {
+                                                                            if (result.modifiedCount === 1)
+                                                                                return res.send({ status: 'SUCCESS', username: sentTo });
+                                                                            else
+                                                                                return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                                                        })
+                                                                        .catch(err => {
+                                                                            console.log(err);
+                                                                            return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                                                        });
+                                                                })
+                                                                .catch(err => {
+                                                                    console.log(err);
+                                                                    return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                                                });
+                                                            
+                                                        }
+                                                        else
+                                                            return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                                    })
+                                                    .catch(err => {
+                                                        console.log(err);
+                                                        return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                                    });
+                                            })
+                                            .catch(err => {
+                                                console.log(err);
+                                                return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                            });
+                                    }
+                                    else
+                                        return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                })
+                                .catch(err => {
+                                    console.log(err);
+                                    return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                });
+                        } else { // if chat does not exist
+                            // see if any chat_ids exist so we can create a new one
+                            db.collection('chat_ids').find().sort({ chat_id: -1 }).limit(1).toArray()
+                                .then(result => {
+                                    var new_chat_id = 0;
+                                    // if chat_ids do exist
+                                    if (result.length > 0)
+                                        new_chat_id = result[0].chat_id + 1;
+
+                                    // add chat_id with two users
+                                    db.collection('chat_ids').insertOne({ chat_id: new_chat_id, user1: sentBy, user2: sentTo })
+                                        .then(result => {
+                                            if (result.acknowledged) {
+                                                // add chat_id with the new message
+                                                db.collection('chat_messages').insertOne({ chat_id: new_chat_id, messages: [{ sentBy: sentBy, message: message, time: timeNow }] })
+                                                    .then(result => {
+                                                        if (result.acknowledged) {
+                                                            // add to user messages
+                                                            db.collection('user_messages').findOne({ username: sentBy })
+                                                                .then(result => {
+                                                                    if (result) {
+                                                                        // find user that message is sent to
+                                                                        var toUpdate = result.messages;
+                                                                        var idx = toUpdate.findIndex(obj => obj.toUsername === sentTo);
+                                                                        // if user has been sent message before
+                                                                        if (idx != -1) {
+                                                                            toUpdate[idx].lastMessage = message;
+                                                                            toUpdate[idx].lastMessageTime = timeNow;
+                                                                        } else { // if user has not been sent message before
+                                                                            toUpdate.push({ toUsername: sentTo, lastMessage: message, lastMessageTime: timeNow });
+                                                                        }
 
                                                                         db.collection('user_messages').updateOne({ username: sentBy }, { $set: { messages: toUpdate } })
                                                                             .then(result => {
-                                                                                if (result.modifiedCount === 1)
-                                                                                    return res.send({ status: 'SUCCESS', username: sentTo });
-                                                                                else
-                                                                                    return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                                            })
-                                                                            .catch(err => {
-                                                                                console.log(err);
-                                                                                return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                                            });
-                                                                    } else { // if no previous chat with this user
-                                                                        db.collection('user_messages').updateOne({ username: sentBy }, { $push: { messages: { toUsername: sentTo, lastMessage: message, lastMessageTime: timeNow } } })
-                                                                            .then(result => {
                                                                                 if (result.modifiedCount === 1) {
-                                                                                    db.collection('user_messages').updateOne({ username: sentTo }, { $push: { messages: { toUsername: sentBy, lastMessage: message, lastMessageTime: timeNow } } })
+                                                                                    // update for other user
+                                                                                    db.collection('user_messages').findOne({ username: sentTo })
                                                                                         .then(result => {
-                                                                                            if (result.modifiedCount === 1)
-                                                                                                return res.send({ status: 'SUCCESS', username: sentTo });
-                                                                                            else
+                                                                                            if (result) {
+                                                                                                var toUpdate = result.messages;
+                                                                                                var idx = toUpdate.findIndex(obj => obj.toUsername === sentBy);
+                                                                                                if (idx != -1) {
+                                                                                                    toUpdate[idx].lastMessage = message;
+                                                                                                    toUpdate[idx].lastMessageTime = timeNow;
+                                                                                                } else {
+                                                                                                    toUpdate.push({ toUsername: sentBy, lastMessage: message, lastMessageTime: timeNow });
+                                                                                                }
+
+                                                                                                db.collection('user_messages').updateOne({ username: sentTo }, { $set: { messages: toUpdate } })
+                                                                                                    .then(result => {
+                                                                                                        if (result.modifiedCount === 1)
+                                                                                                            return res.send({ status: 'SUCCESS' });
+                                                                                                        else
+                                                                                                            return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                                                                                    })
+                                                                                                    .catch(err => {
+                                                                                                        console.log(err);
+                                                                                                        return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                                                                                    });
+                                                                                            } else {
                                                                                                 return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                                                                            }
                                                                                         })
                                                                                         .catch(err => {
                                                                                             console.log(err);
@@ -336,65 +334,41 @@ sendNewMessage = (req, res) => {
                                                                                 console.log(err);
                                                                                 return res.send({ status: 'ERROR', message: 'DB_ERR' });
                                                                             });
+                                                                    } else {
+                                                                        return res.send({ status: 'ERROR', message: 'DB_ERR' });
                                                                     }
-                                                                } else { // if users do not have messages
-                                                                    db.collection('user_messages').insert({ username: sentBy, messages: [{ toUsername: sentTo, lastMessage: message, lastMessageTime: timeNow }]})
-                                                                        .then(result => {
-                                                                            if (result.insertedCount === 1) {
-                                                                                db.collection('user_messages').insert({ username: sentTo, messages: [{ toUsername: sentBy, lastMessage: message, lastMessageTime: timeNow }]})
-                                                                                    .then(result => {
-                                                                                        if (result.insertedCount === 1)
-                                                                                            return res.send({ status: 'SUCCESS' });
-                                                                                        else
-                                                                                            return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                                                    })
-                                                                                    .catch(err => {
-                                                                                        console.log(err);
-                                                                                        return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                                                    });
-                                                                            }
-                                                                            else {
-                                                                                return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                                            }
-                                                                        })
-                                                                        .catch(err => {
-                                                                            console.log(err);
-                                                                            return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                                        });
-                                                                }
-                                                            })
-                                                            .catch(err => {
-                                                                console.log(err);
-                                                                return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                            });
-                                                    } 
-                                                    else {
+                                                                })
+                                                                .catch(err => {
+                                                                    console.log(err);
+                                                                    return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                                                });
+                                                        } else {
+                                                            return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                                        }
+                                                    })
+                                                    .catch(err => {
+                                                        console.log(err);
                                                         return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                    }
-                                                })
-                                                .catch(err => {
-                                                    console.log(err);
-                                                    return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                                });
-                                        } else {
+                                                    });
+                                            } else {
+                                                return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                            }
+                                        })
+                                        .catch(err => {
+                                            console.log(err);
                                             return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                        }
-                                    })
-                                    .catch(err => {
-                                        console.log(err);
-                                        return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                                    });
-                            })
-                            .catch(err => {
-                                console.log(err);
-                                return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                            });
-                    }
-                })
-                .catch(err => {
-                    console.log(err);
-                    return res.send({ status: 'ERROR', message: 'DB_ERR' });
-                });
+                                        });
+                                })
+                                .catch(err => {
+                                    console.log(err);
+                                    return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                                });
+                            }
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                    });
         })
         .catch(err => {
             console.log(err);
@@ -407,8 +381,19 @@ addNewUser = (req, res) => {
 
     db.collection('users').insert({ username: username })
         .then(result => {
-            if (result.insertedCount === 1)
-                return res.send({ status: 'SUCCESS' });
+            if (result.insertedCount === 1) {
+                db.collection('user_messages').insertOne({ username: username, messages: [] })
+                    .then(result => {
+                        if (result.acknowledged)
+                            return res.send({ status: 'SUCCESS' });
+                        else
+                            return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                    })
+                    .catch(err => {
+                        console.log(err);
+                        return res.send({ status: 'ERROR', message: 'DB_ERR' });
+                    });
+            }
             else
                 return res.send({ status: 'ERROR', message: 'DB_ERR' });
         })
@@ -417,3 +402,238 @@ addNewUser = (req, res) => {
             return res.send({ status: 'ERROR', message: 'DB_ERR' });
         });
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    // // see if recipient exists
+    // db.collection('users').find().toArray()
+    //     .then(result => {
+    //         var users = result.map(user => user.username);
+    //         if (!users.includes(sentTo))
+    //             return res.send({ status: 'ERROR', message: 'USER DOES NOT EXIST' });
+            
+    //         // find chat_id for chat between these two users
+    //         db.collection('chat_ids').findOne({ $or:[ { user1: sentBy, user2: sentTo }, { user1: sentTo, user2: sentBy } ]})
+    //             .then(result => {
+    //                 // if chat exists
+    //                 if (result) {
+    //                     var chat_id = result.chat_id;
+
+    //                     // update chat to have new message
+    //                     db.collection('chat_messages').updateOne( { chat_id: chat_id}, { $push: { messages: { sentBy: sentBy, message: message, time: timeNow } } })
+    //                         .then(result => {
+    //                             if (result.modifiedCount === 1) {
+    //                                 // updated users messages to show most recent on screen with all messages
+    //                                 db.collection('user_messages').findOne({ username: sentBy })
+    //                                 .then(result => {
+    //                                     // if messages with this user already exist
+    //                                     if (result) {
+    //                                         var toUpdate = result.messages;
+    //                                         var idx = toUpdate.findIndex(obj => obj.toUsername === sentTo);
+    //                                         if (idx != -1) { // if there is already a chat with the user
+    //                                             toUpdate[idx].lastMessage = message;
+    //                                             toUpdate[idx].lastMessageTime = timeNow;
+
+    //                                             db.collection('user_messages').updateOne({ username: sentBy }, { $set: { messages: toUpdate } })
+    //                                                 .then(result => {
+    //                                                     if (result.modifiedCount === 1)
+    //                                                         return res.send({ status: 'SUCCESS', username: sentTo });
+    //                                                     else
+    //                                                         return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                 })
+    //                                                 .catch(err => {
+    //                                                     console.log(err);
+    //                                                     return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                 });
+    //                                         } else { // if no previous chat with this user
+    //                                             db.collection('user_messages').updateOne({ username: sentBy }, { $push: { messages: { toUsername: sentTo, lastMessage: message, lastMessageTime: timeNow } } })
+    //                                                 .then(result => {
+    //                                                     if (result.modifiedCount === 1)
+    //                                                         return res.send({ status: 'SUCCESS', username: sentTo });
+    //                                                     else
+    //                                                         return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                 })
+    //                                                 .catch(err => {
+    //                                                     console.log(err);
+    //                                                     return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                 });
+    //                                         }
+    //                                     } 
+    //                                     // else { // if users do not have messages
+    //                                     //     db.collection('user_messages').insert({ username: sentBy, messages: [{ toUsername: sentTo, lastMessage: message, lastMessageTime: timeNow }]})
+    //                                     //         .then(result => {
+    //                                     //             if (result.insertedCount === 1) {
+    //                                     //                 db.collection('user_messages').insert({ username: sentTo, messages: [{ toUsername: sentBy, lastMessage: message, lastMessageTime: timeNow }]})
+    //                                     //                     .then(result => {
+    //                                     //                         if (result.insertedCount === 1)
+    //                                     //                             return res.send({ status: 'SUCCESS' });
+    //                                     //                         else
+    //                                     //                             return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                     //                     })
+    //                                     //                     .catch(err => {
+    //                                     //                         console.log(err);
+    //                                     //                         return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                     //                     });
+    //                                     //             }
+    //                                     //             else {
+    //                                     //                 return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                     //             }
+    //                                     //         })
+    //                                     //         .catch(err => {
+    //                                     //             console.log(err);
+    //                                     //             return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                     //         });
+    //                                     // }
+    //                                 })
+    //                                 .catch(err => {
+    //                                     console.log(err);
+    //                                     return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                 });
+    //                             }
+    //                             else
+    //                                 return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                         })
+    //                         .catch(err => {
+    //                             console.log(err);
+    //                             return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                         });
+    //                 } else { // if first message between these two users, chat does not currently exist
+    //                     // get highest chat_id to create new id
+    //                     db.collection('chat_ids').find().sort({ chat_id: -1 }).limit(1).toArray()
+    //                         .then(result => {
+    //                             var new_chat_id = 0;
+    //                             if (result.length > 0)
+    //                                 new_chat_id = result[0].chat_id + 1;
+    //                             db.collection('chat_ids').insert({ chat_id: new_chat_id, user1: sentBy, user2: sentTo })
+    //                                 .then(result => {
+    //                                     if (result.insertedCount === 1) {
+    //                                         // insert the chat messages with associated id
+    //                                         db.collection('chat_messages').insert({ chat_id: new_chat_id, messages: [{ sentBy: sentBy, message: message, time: timeNow }]})
+    //                                             .then(result => {
+    //                                                 if (result.insertedCount === 1) {
+    //                                                     // updated users messages to show most recent on screen with all messages
+    //                                                     db.collection('user_messages').findOne({ username: sentBy })
+    //                                                         .then(result => {
+    //                                                             // if messages with this user already exist
+    //                                                             if (result) {
+    //                                                                 var toUpdate = result.messages;
+    //                                                                 var idx = toUpdate.findIndex(obj => obj.toUsername === sentTo);
+    //                                                                 if (idx != -1) { // if there is already a chat with the user
+    //                                                                     toUpdate[idx].lastMessage = message;
+    //                                                                     toUpdate[idx].lastMessageTime = timeNow;
+
+    //                                                                     db.collection('user_messages').updateOne({ username: sentBy }, { $set: { messages: toUpdate } })
+    //                                                                         .then(result => {
+    //                                                                             if (result.modifiedCount === 1)
+    //                                                                                 return res.send({ status: 'SUCCESS', username: sentTo });
+    //                                                                             else
+    //                                                                                 return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                                         })
+    //                                                                         .catch(err => {
+    //                                                                             console.log(err);
+    //                                                                             return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                                         });
+    //                                                                 } else { // if no previous chat with this user
+    //                                                                     db.collection('user_messages').updateOne({ username: sentBy }, { $push: { messages: { toUsername: sentTo, lastMessage: message, lastMessageTime: timeNow } } })
+    //                                                                         .then(result => {
+    //                                                                             if (result.modifiedCount === 1) {
+    //                                                                                 db.collection('user_messages').updateOne({ username: sentTo }, { $push: { messages: { toUsername: sentBy, lastMessage: message, lastMessageTime: timeNow } } })
+    //                                                                                     .then(result => {
+    //                                                                                         if (result.modifiedCount === 1)
+    //                                                                                             return res.send({ status: 'SUCCESS', username: sentTo });
+    //                                                                                         else
+    //                                                                                             return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                                                     })
+    //                                                                                     .catch(err => {
+    //                                                                                         console.log(err);
+    //                                                                                         return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                                                     });
+    //                                                                             }
+    //                                                                             else
+    //                                                                                 return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                                         })
+    //                                                                         .catch(err => {
+    //                                                                             console.log(err);
+    //                                                                             return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                                         });
+    //                                                                 }
+    //                                                             } else { // if users do not have messages
+    //                                                                 db.collection('user_messages').insert({ username: sentBy, messages: [{ toUsername: sentTo, lastMessage: message, lastMessageTime: timeNow }]})
+    //                                                                     .then(result => {
+    //                                                                         if (result.insertedCount === 1) {
+    //                                                                             db.collection('user_messages').insert({ username: sentTo, messages: [{ toUsername: sentBy, lastMessage: message, lastMessageTime: timeNow }]})
+    //                                                                                 .then(result => {
+    //                                                                                     if (result.insertedCount === 1)
+    //                                                                                         return res.send({ status: 'SUCCESS' });
+    //                                                                                     else
+    //                                                                                         return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                                                 })
+    //                                                                                 .catch(err => {
+    //                                                                                     console.log(err);
+    //                                                                                     return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                                                 });
+    //                                                                         }
+    //                                                                         else {
+    //                                                                             return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                                         }
+    //                                                                     })
+    //                                                                     .catch(err => {
+    //                                                                         console.log(err);
+    //                                                                         return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                                     });
+    //                                                             }
+    //                                                         })
+    //                                                         .catch(err => {
+    //                                                             console.log(err);
+    //                                                             return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                         });
+    //                                                 } 
+    //                                                 else {
+    //                                                     return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                                 }
+    //                                             })
+    //                                             .catch(err => {
+    //                                                 console.log(err);
+    //                                                 return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                             });
+    //                                     } else {
+    //                                         return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                     }
+    //                                 })
+    //                                 .catch(err => {
+    //                                     console.log(err);
+    //                                     return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                                 });
+    //                         })
+    //                         .catch(err => {
+    //                             console.log(err);
+    //                             return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //                         });
+    //                 }
+    //             })
+    //             .catch(err => {
+    //                 console.log(err);
+    //                 return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //             });
+    //     })
+    //     .catch(err => {
+    //         console.log(err);
+    //         return res.send({ status: 'ERROR', message: 'DB_ERR' });
+    //     });
