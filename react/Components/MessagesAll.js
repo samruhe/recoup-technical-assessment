@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Button, FlatList, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import firebase from '@react-native-firebase/app';
 
 function Chat({ username, data, navigation }) {
@@ -30,7 +30,8 @@ class MessagesAll extends Component {
         this.state = {
             username: '',
             chats: [],
-            refreshing: false
+            refreshing: false,
+            menuVisible: false
         };
     }
 
@@ -46,7 +47,6 @@ class MessagesAll extends Component {
         })
         .then(res => res.json())
         .then(resJson => {
-            console.log(resJson)
             this.setState({ chats: resJson.chats, refreshing: false });
         })
         .catch(err => {
@@ -66,11 +66,45 @@ class MessagesAll extends Component {
                     onPress={() => this.props.navigation.navigate('MessageNew', { username: this.state.username })} />
             ),
             headerLeft: () => (
-                <Button
-                    title="Log Out"
-                    onPress={() => firebase.auth().signOut()} />
+                <View style={{left: -15}}>
+                    <Button
+                        title="•••"
+                        onPress={() => this.setState({ menuVisible: true })} />
+                </View>
             )
         });
+    }
+
+    renderLogoutMenu = () => {
+        return (
+            <TouchableWithoutFeedback
+                onPress={() => this.setState({ menuVisible: false }) } >
+                <View style={menu.outside}>
+                    <View style={menu.container}>
+                        <TouchableOpacity
+                            style={menu.button}
+                            onPress={() => {
+                                Alert.alert(
+                                    'Log Out',
+                                    'Do you want to continue?',
+                                    [{
+                                        text: 'Cancel',
+                                        onPress: () => this.setState({ menuVisible: false }),
+                                        style: 'cancel'
+                                    },
+                                    {
+                                        text: 'Yes, Log Out',
+                                        onPress: () => firebase.auth().signOut(),
+                                        style: 'destructive'
+                                    }]
+                                );   
+                            }}>
+                            <Text style={menu.item}>Log Out</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </TouchableWithoutFeedback>
+        );
     }
 
     renderSeparator = () => {
@@ -97,6 +131,7 @@ class MessagesAll extends Component {
                     refreshing={this.state.refreshing}
                     onRefresh={this.handleRefresh}
                 />
+                {this.state.menuVisible && (this.renderLogoutMenu())}
             </View>
         );
     }
@@ -127,6 +162,34 @@ const chatStyle = StyleSheet.create({
         position: 'absolute',
         right: 10,
         flexDirection: 'row'
+    }
+});
+
+const menu = StyleSheet.create({
+    outside: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        right: 0,
+        left: 0
+    },
+    container: {
+        position: 'absolute',
+        backgroundColor: '#D3D3D3',
+        left: 7,
+        top: 5,
+        borderRadius: 10,
+        width: '30%',
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    item: {
+        fontSize: 17,
+        fontWeight: '500',
+        margin: 6,
+        marginLeft: 10,
+        color: 'red'
     }
 });
 
