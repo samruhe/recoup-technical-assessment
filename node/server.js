@@ -26,10 +26,24 @@ client.connect(err => {
 
 
 app.get('/', (req, res) => {});
+app.get('/usernames/all', (req, res) => getExistingUsernames(req, res));
 app.get('/:username', (req, res) => getUserChats(req, res));
 app.get('/:owner/:recipient/messages', (req, res) => getUserChatMessages(req, res));
 app.put('/:sentBy/:sentTo/message', (req, res) => sendMessage(req, res));
 app.post('/:sentBy/:sentTo/message', (req, res) => sendNewMessage(req, res));
+app.post('/add/user/:username', (req, res) => addNewUser(req, res));
+
+getExistingUsernames = (req, res) => {
+    db.collection('users').find().toArray()
+        .then(result => {
+            var existingUsers = result.map(user => user.username);
+            return res.send({ status: 'SUCCESS', usernames: existingUsers });
+        })
+        .catch(err => {
+            console.log(err);
+            return res.send({ status: 'ERROR', message: 'DB_ERR' });
+        });
+}
 
 getUserChats = (req, res) => {
     var username = req.params.username;
@@ -44,7 +58,7 @@ getUserChats = (req, res) => {
                 var date2 = new Date(b.lastMessageTime);
                 return date1 < date2 ? 1 : -1;
             });
-            
+
             return res.send({ status: 'SUCCESS', chats: chats });
         })
         .catch(err => {
@@ -318,6 +332,22 @@ sendNewMessage = (req, res) => {
                     console.log(err);
                     return res.send({ status: 'ERROR', message: 'DB_ERR' });
                 });
+        })
+        .catch(err => {
+            console.log(err);
+            return res.send({ status: 'ERROR', message: 'DB_ERR' });
+        });
+}
+
+addNewUser = (req, res) => {
+    var username = req.params.username;
+
+    db.collection('users').insert({ username: username })
+        .then(result => {
+            if (result.insertedCount === 1)
+                return res.send({ status: 'SUCCESS' });
+            else
+                return res.send({ status: 'ERROR', message: 'DB_ERR' });
         })
         .catch(err => {
             console.log(err);

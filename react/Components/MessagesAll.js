@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import firebase from '@react-native-firebase/app';
 
 function Chat({ username, data, navigation }) {
     var messageSent = new Date(data.lastMessageTime).toDateString();
@@ -44,6 +45,11 @@ class MessagesAll extends Component {
     }
 
     componentDidMount() {
+        // firebase.auth().signOut();
+        // this.props.navigation.navigate('Loading');
+        var { currentUser } = firebase.auth();
+        this.setState({ username: currentUser.displayName }, () => this.makeRequest());
+
         this.props.navigation.setOptions({
             headerRight: () => (
                 <Button
@@ -51,8 +57,6 @@ class MessagesAll extends Component {
                     onPress={() => this.props.navigation.navigate('MessageNew', { username: this.state.username })} />
             )
         });
-
-        this.makeRequest();
     }
 
     renderSeparator = () => {
