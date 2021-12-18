@@ -1,59 +1,18 @@
-import React from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createSwitchNavigator, createAppContainer } from 'react-navigation';
 
-import MessagesAll from './Components/MessagesAll';
-import Message from './Components/Message';
-import MessageNew from './Components/MessageNew';
+import Loading from './Components/Auth/Loading'
+import SignUp from './Components/Auth/SignUp'
+import Login from './Components/Auth/Login'
+import Main from './Components/Auth/Main'
 
-const Stack = createNativeStackNavigator();
-
-const App = () => {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRoutName='MessageList'
-        screenOptions={{
-          headerBackTitle: ''
-        }}>
-        <Stack.Screen name='MessageList' component={MessagesAll} options={{ title: 'Messages' }} />
-        <Stack.Screen
-          name='Message'
-          component={Message}
-          options={({ route }) => ({
-            title: route.params.toUsername
-          })} />
-        <Stack.Screen
-          name='MessageNew'
-          component={MessageNew}
-          options={{
-            title: 'New Message',
-            headerBackTitle: 'Cancel',
-            presentation: 'modal'
-          }} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-};
-
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
-
-export default App;
+export default createAppContainer(createSwitchNavigator(
+	{
+		Loading,
+		SignUp,
+		Login,
+		Main
+	},
+	{
+		initialRouteName: 'Loading'
+	}
+));

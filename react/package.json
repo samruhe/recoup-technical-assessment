@@ -10,12 +10,16 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@react-native-firebase/app": "^14.0.1",
+    "@react-native-firebase/auth": "^14.0.1",
     "@react-navigation/native": "^6.0.6",
     "@react-navigation/native-stack": "^6.2.5",
     "react": "17.0.2",
     "react-native": "0.66.4",
+    "react-native-gesture-handler": "^2.1.0",
     "react-native-safe-area-context": "^3.3.2",
     "react-native-screens": "^3.10.1",
+    "react-navigation": "^4.4.4",
     "socket.io-client": "^4.4.0"
   },
   "devDependencies": {
