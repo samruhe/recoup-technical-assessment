@@ -1,27 +1,7 @@
 import React, { Component } from 'react';
-import { Button, FlatList, Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Button, FlatList, Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import SingleMessage from './SingleMessage';
-
-// function SingleMessage({ messageInfo, username }) {
-//     const myMessage = () => {
-//         return messageInfo.sentBy === username;
-//     }
-
-//     return (
-//         <View style={message.container}>
-//             <View style={[
-//                 message.box, {
-//                     backgroundColor: myMessage() ? 'blue' : 'gray',
-//                     alignSelf: myMessage() ? 'flex-end' : 'flex-start',
-//                     maxWidth: '80%'
-//                 }
-//             ]}>
-//                 <Text style={message.text}>{messageInfo.message}</Text>
-//             </View>
-//         </View>
-//     );
-// }
 
 class Message extends Component {
     constructor(props) {

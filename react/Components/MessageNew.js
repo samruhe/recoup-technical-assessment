@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Button, FlatList, Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Button, FlatList, Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import SingleMessage from './SingleMessage';
 
@@ -34,8 +34,12 @@ class MessageNew extends Component {
                     newMessage: ''
                 }, () => this.makeRequest());
             }
-            else
-                Alert.alert('User does not exist', 'Please make sure the recipent is entered correctly');
+            else {
+                if (resJson.message === 'USER DOES NOT EXIST')
+                    Alert.alert('User does not exist', 'Please make sure the recipent is entered correctly');
+                else
+                    Alert.alert('Network Request Failed', 'Please try again later');
+            }
         })
         .catch(err => console.log(err));
     }
@@ -114,19 +118,6 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
         height: '100%'
-    }
-});
-
-const message = StyleSheet.create({
-    box: {
-        padding: 10,
-        borderRadius: 15
-    },
-    container: {
-        padding: 5
-    },
-    text: {
-        fontSize: 15
     }
 });
 

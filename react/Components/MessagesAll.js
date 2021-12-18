@@ -28,7 +28,7 @@ class MessagesAll extends Component {
         super(props);
 
         this.state = {
-            username: 'samruhe',
+            username: '',
             chats: [],
             refreshing: false
         };
@@ -46,6 +46,7 @@ class MessagesAll extends Component {
         })
         .then(res => res.json())
         .then(resJson => {
+            console.log(resJson)
             this.setState({ chats: resJson.chats, refreshing: false });
         })
         .catch(err => {
@@ -55,8 +56,6 @@ class MessagesAll extends Component {
     }
 
     componentDidMount() {
-        // firebase.auth().signOut();
-        // this.props.navigation.navigate('Loading');
         var { currentUser } = firebase.auth();
         this.setState({ username: currentUser.displayName }, () => this.makeRequest());
 
