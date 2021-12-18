@@ -5,10 +5,18 @@ import '@react-native-firebase/auth';
 
 
 export default class Loading extends React.Component {
+  unsubscribeFromFirebaseAuth = null;
+
   componentDidMount() {
-    firebase.auth().onAuthStateChanged(user => {
+    this.unsubscribeFromFirebaseAuth = firebase.auth().onAuthStateChanged(user => {
       this.props.navigation.navigate(user ? 'Main' : 'SignUp')
     });
+  }
+
+  componentWillUnmount() {
+    if (this.unsubscribeUserAuthStateChangedListener) {
+      this.unsubscribeUserAuthStateChangedListener();
+    }
   }
 
   render() {
