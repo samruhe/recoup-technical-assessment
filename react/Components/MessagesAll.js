@@ -29,8 +29,15 @@ class MessagesAll extends Component {
 
         this.state = {
             username: 'samruhe',
-            chats: []
+            chats: [],
+            refreshing: false
         };
+    }
+
+    handleRefresh = () => {
+        this.setState({
+            refreshing: true
+        }, () => this.makeRequest());
     }
 
     makeRequest = () => {
@@ -39,9 +46,12 @@ class MessagesAll extends Component {
         })
         .then(res => res.json())
         .then(resJson => {
-            this.setState({ chats: resJson.chats });
+            this.setState({ chats: resJson.chats, refreshing: false });
         })
-        .catch(err => console.log(err));
+        .catch(err => {
+            console.log(err);
+            this.setState({ refreshing: false });
+        });
     }
 
     componentDidMount() {
@@ -79,17 +89,26 @@ class MessagesAll extends Component {
 
     render() {
         return (
-            <View>
+            <View style={styles.container}>
                 <FlatList
                     keyExtractor={chat => chat.toUsername}
                     data={this.state.chats}
                     renderItem={({item}) => <Chat data={item} username={this.state.username} navigation={this.props.navigation} />}
                     ItemSeparatorComponent={this.renderSeparator}
+                    refreshing={this.state.refreshing}
+                    onRefresh={this.handleRefresh}
                 />
             </View>
         );
     }
 }
+
+const styles = StyleSheet.create({
+    container: {
+        width: '100%',
+        minHeight: '100%'
+    }
+});
 
 const chatStyle = StyleSheet.create({
     container: {

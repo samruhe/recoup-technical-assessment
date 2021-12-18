@@ -30,13 +30,12 @@ class Message extends Component {
             username: props.route.params.username,
             toUsername: props.route.params.toUsername,
             messages: [],
-            newMessage: ''
+            newMessage: '',
+            refreshing: false
         };
     }
 
     handleSendMessage = () => {
-        // this.socket.emit('chat message', this.state.newMessage);
-        // this.setState({ newMessage: '' });
         fetch(`http://localhost:3000/${this.state.username}/${this.state.toUsername}/message`, {
             method: 'PUT',
             headers: {
@@ -60,24 +59,31 @@ class Message extends Component {
         .catch(err => console.log(err));
     }
 
+    handleRefresh = () => {
+        this.setState({
+            refreshing: true
+        }, () => this.makeRequest());
+    }
+
     makeRequest = () => {
         fetch(`http://localhost:3000/${this.state.username}/${this.state.toUsername}/messages`, {
             method: 'GET'
         })
         .then(res => res.json())
         .then(resJson => {
-            this.setState({ messages: resJson.messages });
+            this.setState({
+                messages: resJson.messages,
+                refreshing: false
+            });
         })
-        .catch(err => console.log(err));
+        .catch(err => {
+            console.log(err);
+            this.setState({ refreshing: false });
+        });
     }
 
     componentDidMount() {
         this.makeRequest();
-
-        // this.socket = io("http://localhost:3000");
-        // this.socket.on("chat message", msg => {
-        //     this.setState({ messages: [...this.state.messages, { sent: true, message: msg, time: '11:00' }] });
-        // });
     }
 
     render() {
@@ -90,7 +96,10 @@ class Message extends Component {
                     inverted
                     data={this.state.messages}
                     contentContainerStyle={{ flexDirection: 'column-reverse' }}
-                    renderItem={({ item }) => <SingleMessage messageInfo={item} username={this.state.username} /> } />
+                    renderItem={({ item }) => <SingleMessage messageInfo={item} username={this.state.username} /> }
+                    refreshing={this.state.refreshing}
+                    onRefresh={this.handleRefresh}
+                />
                 <View style={newMessage.container}>
                     <View style={newMessage.subContainer}>
                         <TextInput

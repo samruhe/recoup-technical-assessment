@@ -29,7 +29,8 @@ class MessageNew extends Component {
             username: props.route.params.username,
             messages: [],
             newMessage: '',
-            contact: ''
+            contact: '',
+            refreshing: false
         };
     }
 
@@ -49,7 +50,7 @@ class MessageNew extends Component {
                 this.setState({
                     messages: [...this.state.messages, { sentBy: this.state.username, message: this.state.newMessage, time: Date.now() }],
                     newMessage: ''
-                });
+                }, () => this.makeRequest());
             }
             else
                 Alert.alert('User does not exist', 'Please make sure the recipent is entered correctly');
@@ -57,12 +58,27 @@ class MessageNew extends Component {
         .catch(err => console.log(err));
     }
 
-    makeRequest = () => {
-        
+    handleRefresh = () => {
+        this.setState({
+            refreshing: true
+        }, () => this.makeRequest());
     }
 
-    componentDidMount() {
-        this.makeRequest();
+    makeRequest = () => {
+        fetch(`http://localhost:3000/${this.state.username}/${this.state.contact}/messages`, {
+            method: 'GET'
+        })
+        .then(res => res.json())
+        .then(resJson => {
+            this.setState({
+                messages: resJson.messages,
+                refreshing: false
+            });
+        })
+        .catch(err => {
+            console.log(err);
+            this.setState({ refreshing: false });
+        });
     }
 
     render() {
@@ -84,7 +100,10 @@ class MessageNew extends Component {
                     inverted
                     data={this.state.messages}
                     contentContainerStyle={{ flexDirection: 'column-reverse' }}
-                    renderItem={({ item }) => <SingleMessage messageInfo={item} username={this.state.username} /> } />
+                    renderItem={({ item }) => <SingleMessage messageInfo={item} username={this.state.username} /> }
+                    refreshing={this.state.refreshing}
+                    onRefresh={this.handleRefresh}
+                />
                 <View style={newMessage.container}>
                     <View style={newMessage.subContainer}>
                         <TextInput
