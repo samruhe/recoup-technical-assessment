@@ -52,7 +52,7 @@ class SignUp extends Component {
     }
 
     makeRequest = () => {
-        fetch(`http://localhost:3000/usernames/all`, {
+        fetch(`http://localhost:3000/users/existing`, {
             method: 'GET'
         })
         .then(res => res.json())
