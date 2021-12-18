@@ -26,22 +26,25 @@ client.connect(err => {
 
 
 app.get('/', (req, res) => {});
-app.get('/:username', (req, res) => getUsersChats(req, res));
-app.get('/:owner/:recipient/messages', (req, res) => getUserMessages(req, res));
+app.get('/:username', (req, res) => getUserChats(req, res));
+app.get('/:owner/:recipient/messages', (req, res) => getUserChatMessages(req, res));
 app.put('/:sentBy/:sentTo/message', (req, res) => sendMessage(req, res));
 app.post('/:sentBy/:sentTo/message', (req, res) => sendNewMessage(req, res));
 
-getUsersChats = (req, res) => {
+getUserChats = (req, res) => {
     var username = req.params.username;
 
     // finds all chats that 'username' has
     db.collection('user_messages').findOne({ username: username })
         .then(result => {
             // sorts by time
-            var chats = result.messages.sort(function(a, b) {
-                return a.lastMessageTime - b.LastMessageTime;
-            })
-
+            var chats = result.messages;
+            chats.sort((a, b) => {
+                var date1 = new Date(a.lastMessageTime);
+                var date2 = new Date(b.lastMessageTime);
+                return date1 < date2 ? 1 : -1;
+            });
+            
             return res.send({ status: 'SUCCESS', chats: chats });
         })
         .catch(err => {
@@ -50,7 +53,7 @@ getUsersChats = (req, res) => {
         });
 }
 
-getUserMessages = (req, res) => {
+getUserChatMessages = (req, res) => {
     var { owner, recipient } = req.params;
 
     // finds id of the chat that two users have together
