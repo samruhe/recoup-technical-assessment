@@ -3,7 +3,6 @@ import { View, Text, ActivityIndicator, StyleSheet } from 'react-native'
 import firebase from '@react-native-firebase/app';
 import '@react-native-firebase/auth';
 
-
 export default class Loading extends React.Component {
   unsubscribeFromFirebaseAuth = null;
 

@@ -42,6 +42,7 @@ class Login extends Component {
                             style={styles.textInput}
                             autoCapitalize="none"
                             placeholder="Email"
+                            keyboardType="email-address"
                             onChangeText={email => this.setState({ email })}
                             value={this.state.email}
                         />

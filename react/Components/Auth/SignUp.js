@@ -92,6 +92,7 @@ class SignUp extends Component {
                                 style={styles.textInput}
                                 placeholder="Email"
                                 autoCapitalize="none"
+                                keyboardType="email-address"
                                 onFocus={() => this.setState({ errorMessage: ' ' })}
                                 onChangeText={email => this.setState({ email })}
                                 value={this.state.email}
