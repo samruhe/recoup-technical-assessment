@@ -78,7 +78,7 @@ class MessagesAll extends Component {
                 <View style={{ right: -12 }}>
                     <Button
                         title='+'
-                        onPress={() => this.props.navigation.navigate('MessageNew', { username: this.state.username })} />
+                        onPress={() => this.props.navigation.navigate('MessageNew', { username: currentUser.displayName })} />
                 </View>
             ),
             headerLeft: () => (

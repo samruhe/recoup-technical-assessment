@@ -379,9 +379,9 @@ sendNewMessage = (req, res) => {
 addNewUser = (req, res) => {
     var username = req.params.username;
 
-    db.collection('users').insert({ username: username })
+    db.collection('users').insertOne({ username: username })
         .then(result => {
-            if (result.insertedCount === 1) {
+            if (result.acknowledged) {
                 db.collection('user_messages').insertOne({ username: username, messages: [] })
                     .then(result => {
                         if (result.acknowledged)
