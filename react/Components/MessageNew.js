@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Alert, Button, FlatList, KeyboardAvoidingView, StyleSheet, TextInput, View } from 'react-native';
+import firebase from '@react-native-firebase/app';
 
 import SingleMessage from './SingleMessage';
 
@@ -8,7 +9,7 @@ class MessageNew extends Component {
         super(props);
 
         this.state = {
-            username: props.route.params.username,
+            username: '',
             messages: [],
             newMessage: '',
             contact: '',
@@ -65,6 +66,11 @@ class MessageNew extends Component {
             console.log(err);
             this.setState({ refreshing: false });
         });
+    }
+
+    componentDidMount = () => {
+        var { currentUser } = firebase.auth();
+        this.setState({ username: currentUser.displayName });
     }
 
     render() {
@@ -151,7 +157,7 @@ const newMessage = StyleSheet.create({
     },
     textInput: {
         flex: 1,
-        marginHorizontal: 5,
+        marginHorizontal: 15,
         minHeight: 35,
         marginTop: 5
     }
