@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Button, FlatList, Keyboard, KeyboardAvoidingView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Button, FlatList, KeyboardAvoidingView, StyleSheet, TextInput, View } from 'react-native';
 
 import SingleMessage from './SingleMessage';
 

@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Alert, Button, FlatList, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { Alert, Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import firebase from '@react-native-firebase/app';
 
 function Chat({ username, data, navigation }) {
