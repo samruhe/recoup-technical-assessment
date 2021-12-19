@@ -113,7 +113,8 @@ const styles = StyleSheet.create({
 
 const newMessage = StyleSheet.create({
     buttonContainer: {
-        justifyContent: 'center'
+        justifyContent: 'center',
+        flex: 1
     },
     container: {
         flexDirection: 'row',
@@ -122,15 +123,18 @@ const newMessage = StyleSheet.create({
     },
     subContainer: {
         backgroundColor: 'white',
-        margin: 10,
+        marginLeft: 25,
+        marginTop: 10,
+        marginBottom: 15,
         borderRadius: 20,
-        flex: 1,
+        flex: 4,
         minHeight: 40
     },
     textInput: {
         flex: 1,
         marginHorizontal: 5,
-        marginTop: 5
+        marginTop: 5,
+        padding: 10
     }
 });
 

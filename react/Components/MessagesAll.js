@@ -3,7 +3,21 @@ import { Alert, Button, FlatList, StyleSheet, Text, TouchableOpacity, TouchableW
 import firebase from '@react-native-firebase/app';
 
 function Chat({ username, data, navigation }) {
-    var messageSent = new Date(data.lastMessageTime).toDateString();
+    var timeSent = new Date(data.lastMessageTime);
+    var displayRaw = data.lastMessage.substring(0, 40);
+    var idx = displayRaw.lastIndexOf(' ');
+    var displayMessage = data.lastMessage;
+    if (idx != -1)
+        displayMessage = displayRaw.substring(0, idx) + '...';
+
+    var hours = timeSent.getHours();
+    var minutes = timeSent.getMinutes();
+    var amPM = hours < 12 ? 'AM' : 'PM';
+    hours = hours % 12;
+    hours = hours == 0 ? 12 : hours;
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    var time = `${hours}:${minutes} ${amPM}`;
+
     return (
         <TouchableOpacity
             style={chatStyle.container}
@@ -12,11 +26,10 @@ function Chat({ username, data, navigation }) {
             <View style={chatStyle.layoutContainer}>
                 <View>
                     <Text style={chatStyle.contact}>{data.toUsername}</Text>
-                    <Text style={chatStyle.lastMessage}>{data.lastMessage}</Text>
+                    <Text style={chatStyle.lastMessage}>{displayMessage}</Text>
                 </View>
                 <View style={chatStyle.right}>
-                    <Text>{messageSent}</Text>
-                    <Text style={chatStyle.contact}>&gt;</Text>
+                    <Text>{time}</Text>
                 </View>
             </View>
         </TouchableOpacity>
@@ -61,12 +74,14 @@ class MessagesAll extends Component {
 
         this.props.navigation.setOptions({
             headerRight: () => (
-                <Button
-                    title='+'
-                    onPress={() => this.props.navigation.navigate('MessageNew', { username: this.state.username })} />
+                <View style={{ right: -12 }}>
+                    <Button
+                        title='+'
+                        onPress={() => this.props.navigation.navigate('MessageNew', { username: this.state.username })} />
+                </View>
             ),
             headerLeft: () => (
-                <View style={{left: -15}}>
+                <View style={{ left: -15 }}>
                     <Button
                         title="•••"
                         onPress={() => this.setState({ menuVisible: true })} />
@@ -111,7 +126,7 @@ class MessagesAll extends Component {
         return (
             <View
                 style={{
-                    height: 1,
+                    height: 1.5,
                     width: "100%",
                     backgroundColor: "#CED0CE",
                     alignSelf: 'center'
@@ -137,31 +152,33 @@ class MessagesAll extends Component {
     }
 }
 
-const styles = StyleSheet.create({
-    container: {
-        width: '100%',
-        minHeight: '100%'
-    }
-});
-
 const chatStyle = StyleSheet.create({
     container: {
         height: 80
     },
     contact: {
-        fontSize: 20
+        fontSize: 20,
+        marginBottom: 4
     },
     lastMessage: {
         fontSize: 15
     },
     layoutContainer: {
         display: 'flex',
-        flexDirection: 'row'
+        flexDirection: 'row',
+        margin: 10
     },
     right: {
         position: 'absolute',
         right: 10,
-        flexDirection: 'row'
+        top: 20,
+    }
+});
+
+const styles = StyleSheet.create({
+    container: {
+        width: '100%',
+        minHeight: '100%'
     }
 });
 

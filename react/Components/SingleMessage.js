@@ -10,7 +10,7 @@ function SingleMessage({ messageInfo, username }) {
         <View style={message.container}>
             <View style={[
                 message.box, {
-                    backgroundColor: myMessage() ? 'blue' : 'gray',
+                    backgroundColor: myMessage() ? '#ADD8E6' : '#FFCCD4',
                     alignSelf: myMessage() ? 'flex-end' : 'flex-start',
                     maxWidth: '80%'
                 }

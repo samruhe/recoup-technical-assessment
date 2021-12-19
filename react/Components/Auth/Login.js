@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
     inputContainer: {
         width: '90%',
         height: 90,
+        marginBottom: 20,
         justifyContent: 'space-between'
     },
     subContainer: {
