@@ -71,7 +71,7 @@ class Message extends Component {
         return (
             <KeyboardAvoidingView
                 behavior='padding'
-                keyboardVerticalOffset={80}
+                keyboardVerticalOffset={70}
                 style={styles.container}>
                 <FlatList
                     inverted
@@ -114,27 +114,28 @@ const styles = StyleSheet.create({
 const newMessage = StyleSheet.create({
     buttonContainer: {
         justifyContent: 'center',
-        flex: 1
+        right: 5,
+        marginBottom: 20
     },
     container: {
         flexDirection: 'row',
         backgroundColor: '#A9A9A9',
-        paddingBottom: 10
+        alignItems: 'center'
     },
     subContainer: {
+        flexDirection: 'row',
         backgroundColor: 'white',
-        marginLeft: 25,
-        marginTop: 10,
-        marginBottom: 15,
         borderRadius: 20,
+        marginRight: 10,
         flex: 4,
-        minHeight: 40
+        margin: 10,
+        marginBottom: 30
     },
     textInput: {
         flex: 1,
-        marginHorizontal: 5,
+        marginHorizontal: 15,
+        minHeight: 35,
         marginTop: 5,
-        padding: 10
     }
 });
 

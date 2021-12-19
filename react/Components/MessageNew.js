@@ -71,11 +71,10 @@ class MessageNew extends Component {
         return (
             <KeyboardAvoidingView
                 behavior='padding'
-                keyboardVerticalOffset={80}
+                keyboardVerticalOffset={92}
                 style={styles.container}>
                 <View style={newMessage.sendTo}>
                     <TextInput
-                        autoFocus
                         style={newMessage.sendToInput}
                         placeholder="Send to..."
                         placeholderTextColor="gray"
@@ -123,32 +122,37 @@ const styles = StyleSheet.create({
 
 const newMessage = StyleSheet.create({
     buttonContainer: {
-        justifyContent: 'center'
+        justifyContent: 'center',
+        right: 5,
+        marginBottom: 20
     },
     container: {
         flexDirection: 'row',
         backgroundColor: '#A9A9A9',
-        paddingBottom: 10
+        alignItems: 'center'
     },
     sendTo: {
-        height: 40,
+        height: 45,
         borderBottomWidth: 1,
         borderBottomColor: 'gray'
     },
     sendToInput: {
-        marginTop: 10,
+        marginTop: 12,
         marginLeft: 10
     },
     subContainer: {
+        flexDirection: 'row',
         backgroundColor: 'white',
-        margin: 10,
         borderRadius: 20,
-        flex: 1,
-        minHeight: 40
+        marginRight: 10,
+        flex: 4,
+        margin: 10,
+        marginBottom: 30
     },
     textInput: {
         flex: 1,
         marginHorizontal: 5,
+        minHeight: 35,
         marginTop: 5
     }
 });

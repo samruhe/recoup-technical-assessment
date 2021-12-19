@@ -3,13 +3,15 @@ import { Alert, Button, FlatList, StyleSheet, Text, TouchableOpacity, TouchableW
 import firebase from '@react-native-firebase/app';
 
 function Chat({ username, data, navigation }) {
-    var timeSent = new Date(data.lastMessageTime);
-    var displayRaw = data.lastMessage.substring(0, 40);
-    var idx = displayRaw.lastIndexOf(' ');
     var displayMessage = data.lastMessage;
-    if (idx != -1)
-        displayMessage = displayRaw.substring(0, idx) + '...';
-
+    if (displayMessage.length >= 40) {
+        var displayRaw = data.lastMessage.substring(0, 40);
+        var idx = displayRaw.lastIndexOf(' ');
+        if (idx != -1)
+            displayMessage = displayRaw.substring(0, idx) + '...';
+    }
+    
+    var timeSent = new Date(data.lastMessageTime);
     var hours = timeSent.getHours();
     var minutes = timeSent.getMinutes();
     var amPM = hours < 12 ? 'AM' : 'PM';
