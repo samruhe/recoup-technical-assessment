@@ -45,7 +45,7 @@ class SignUp extends Component {
     }
 
     checkUsername = () => {
-        if (this.state.existingUsernames.includes(this.state.username))
+        if (this.state.existingUsernames.includes(this.state.username.toLowerCase()))
             this.setState({ errorMessage: 'This username already exists.' });
         else
             this.handleSignUp()
@@ -58,7 +58,8 @@ class SignUp extends Component {
         .then(res => res.json())
         .then(resJson => {
             if (resJson.status === 'SUCCESS') {
-                this.setState({ existingUsernames: resJson.usernames });
+                var usernames = resJson.usernames.map(name => name.toLowerCase());
+                this.setState({ existingUsernames: usernames });
             }
         })
         .catch(err => console.log(err));
